@@ -56,7 +56,7 @@ class VatlayerPlugin(BasePlugin):
         self._cached_taxes = {}
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
-        if not self.active or not self.config.access_key:
+        if not self.config.access_key:
             return True
 
         # The previous plugin already calculated taxes so we can skip our logic
@@ -177,9 +177,6 @@ class VatlayerPlugin(BasePlugin):
     def get_tax_rate_type_choices(
         self, previous_value: List["TaxType"]
     ) -> List["TaxType"]:
-        if not self.active:
-            return previous_value
-
         rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
         choices = [
             TaxType(code=rate_name, description=rate_name) for rate_name in rate_types
@@ -188,8 +185,6 @@ class VatlayerPlugin(BasePlugin):
         return sorted(choices, key=lambda x: x.code)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        if not self.active:
-            return previous_value
         return True
 
     def apply_taxes_to_shipping_price_range(
@@ -238,9 +233,6 @@ class VatlayerPlugin(BasePlugin):
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
-        if not self.active:
-            return previous_value
-
         if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
@@ -252,8 +244,6 @@ class VatlayerPlugin(BasePlugin):
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
     ) -> "TaxType":
-        if not self.active:
-            return previous_value
         return self.__get_tax_code_from_object_meta(obj)
 
     def __get_tax_code_from_object_meta(
@@ -267,8 +257,6 @@ class VatlayerPlugin(BasePlugin):
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         """Return tax rate percentage value for given tax rate type in the country."""
-        if not self.active:
-            return previous_value
         taxes = self._get_taxes_for_country(country)
         if not taxes:
             return Decimal(0)
@@ -278,8 +266,6 @@ class VatlayerPlugin(BasePlugin):
 
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
-        if not self.active:
-            return previous_value
         fetch_rates(self.config.access_key)
         return True
 

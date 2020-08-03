@@ -98,9 +98,6 @@ class AvataxPlugin(BasePlugin):
         if not (self.config.username_or_account and self.config.password_or_license):
             return True
 
-        if not self.active:
-            return True
-
         # The previous plugin already calculated taxes so we can skip our logic
         if isinstance(previous_value, TaxedMoneyRange):
             start = previous_value.start
@@ -253,8 +250,6 @@ class AvataxPlugin(BasePlugin):
         return previous_value
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
-        if not self.active:
-            return previous_value
         data = get_order_tax_data(order, self.config, force_refresh=True)
 
         transaction_url = urljoin(
@@ -337,8 +332,6 @@ class AvataxPlugin(BasePlugin):
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
-        if not self.active:
-            return previous_value
         return [
             TaxType(code=tax_code, description=desc)
             for tax_code, desc in get_cached_tax_codes_or_fetch(self.config).items()
@@ -347,9 +340,6 @@ class AvataxPlugin(BasePlugin):
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
-        if not self.active:
-            return previous_value
-
         codes = get_cached_tax_codes_or_fetch(self.config)
         if tax_code not in codes:
             return
@@ -362,20 +352,14 @@ class AvataxPlugin(BasePlugin):
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
-        if not self.active:
-            return previous_value
         tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
         tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, "")
         return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        if not self.active:
-            return previous_value
         return False
 
     def fetch_taxes_data(self, previous_value):
-        if not self.active:
-            return previous_value
         get_cached_tax_codes_or_fetch(self.config)
         return True
 

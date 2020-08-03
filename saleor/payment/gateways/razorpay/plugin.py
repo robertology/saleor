@@ -10,16 +10,6 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData
 
 
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
-
-
 class RazorpayGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "mirumee.payments.razorpay"
@@ -73,25 +63,21 @@ class RazorpayGatewayPlugin(BasePlugin):
     def _get_gateway_config(self):
         return self.config
 
-    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
-    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
         return [{"field": "api_key", "value": config.connection_params["public_key"]}]
