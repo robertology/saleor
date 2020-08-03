@@ -56,7 +56,7 @@ class PluginsManager(PaymentInterface):
             f"ExtensionsManager.{method_name}"
         ):
             value = default_value
-            for plugin in self.plugins:
+            for plugin in self.get_active_plugins():
                 value = self.__run_method_on_single_plugin(
                     plugin, method_name, value, *args, **kwargs
                 )
@@ -70,12 +70,14 @@ class PluginsManager(PaymentInterface):
         *args,
         **kwargs,
     ) -> Any:
-        """Run method_name on plugin.
+        """Run method_name on active plugin.
 
-        Method will return value returned from plugin's
-        method. If plugin doesn't have own implementation of expected method_name, it
-        will return previous_value.
+        If plugin is active and has implementation of expected method_name,
+        return the value from running that method. Otherwise, return previous_value.
         """
+        if not plugin.active:
+            return previous_value
+
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
